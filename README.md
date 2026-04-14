@@ -15,6 +15,7 @@ Each component is designed to be reusable, portable, and installable without mod
 
 ## Repository Structure
 
+```
 gnuboard_g7_ecosystem/
 ├── modules/
 │   ├── _bundled/
@@ -24,6 +25,7 @@ gnuboard_g7_ecosystem/
 ├── distributions/
 ├── docs/
 └── tools/
+```
 
 ## Modules
 
