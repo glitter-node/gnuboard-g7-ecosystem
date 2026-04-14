@@ -1,0 +1,1109 @@
+{
+  "version": "1.0.0",
+  "layout_name": "reservation_lookup",
+  "extends": "_user_base",
+  "permissions": [],
+  "meta": {
+    "title": "예약 조회 및 취소",
+    "description": "고객용 예약 조회 및 취소 화면"
+  },
+  "init_actions": [
+    {
+      "handler": "setState",
+      "params": {
+        "target": "local",
+        "lookupForm": {
+          "customer_phone": ""
+        },
+        "lookupResults": [],
+        "lookupError": null,
+        "lookupMessage": "예약 시 입력한 연락처를 입력하면 예약 내역을 바로 확인할 수 있습니다.",
+        "cancelError": null,
+        "cancelSuccess": null,
+        "errors": null,
+        "isLoading": false,
+        "isCancelling": false,
+        "isCancellingId": null,
+        "pendingCancelBooking": null
+      }
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "layout",
+        "name": "Container",
+        "props": {
+          "className": "py-10"
+        },
+        "responsive": {
+          "portable": {
+            "props": {
+              "className": "py-6"
+            }
+          }
+        },
+        "children": [
+          {
+            "type": "basic",
+            "name": "Div",
+            "props": {
+              "className": "max-w-2xl mx-auto px-4"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "mb-8 text-center"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "w-16 h-16 mx-auto mb-4 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shadow-sm"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "calendar",
+                          "className": "text-blue-600 dark:text-blue-300 text-2xl"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "H1",
+                    "props": {
+                      "className": "text-3xl font-bold text-gray-900 dark:text-white mb-3"
+                    },
+                    "text": "예약 조회 및 취소"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm md:text-base text-gray-600 dark:text-gray-400 leading-6"
+                    },
+                    "text": "예약 시 입력한 연락처로 예약 내역을 확인하고, 취소 가능한 상태라면 같은 화면에서 바로 취소할 수 있습니다."
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "mt-5 flex justify-center"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Button",
+                        "props": {
+                          "type": "button",
+                          "className": "inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium shadow-sm hover:bg-blue-700 transition-colors"
+                        },
+                        "actions": [
+                          {
+                            "type": "click",
+                            "handler": "navigate",
+                            "params": {
+                              "path": "{{_global?.reservationPublicApplyPagePath ?? './apply'}}",
+                              "mergeQuery": false
+                            }
+                          }
+                        ],
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Icon",
+                            "props": {
+                              "name": "mail",
+                              "className": "text-sm"
+                            }
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Span",
+                            "text": "예약 신청하기"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.lookupMessage && _local?.lookupMessage !== '조회된 예약이 없습니다.'}}",
+                "props": {
+                  "className": "mb-6 p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 shadow-sm"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "flex items-start gap-3"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "info",
+                          "className": "text-blue-600 dark:text-blue-300 text-lg mt-0.5"
+                        }
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm font-semibold text-blue-900 dark:text-blue-100"
+                            },
+                            "text": "조회 안내"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm text-blue-700 dark:text-blue-300 mt-1"
+                            },
+                            "text": "{{_local?.lookupMessage}}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.lookupError}}",
+                "props": {
+                  "className": "mb-6 p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 shadow-sm"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "flex items-start gap-3"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "warning",
+                          "className": "text-red-600 dark:text-red-300 text-lg mt-0.5"
+                        }
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm font-semibold text-red-900 dark:text-red-100"
+                            },
+                            "text": "조회 실패"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm text-red-700 dark:text-red-300 mt-1"
+                            },
+                            "text": "{{_local?.lookupError}}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.cancelSuccess}}",
+                "props": {
+                  "className": "mb-6 p-4 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 shadow-sm"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "flex items-start gap-3"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "check",
+                          "className": "text-green-600 dark:text-green-300 text-lg mt-0.5"
+                        }
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm font-semibold text-green-900 dark:text-green-100"
+                            },
+                            "text": "예약이 취소되었습니다"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-xs text-green-700 dark:text-green-300 mt-1"
+                            },
+                            "text": "예약 번호: {{_local?.cancelSuccess?.id ?? '-'}} / 상태: {{_local?.cancelSuccess?.status ?? '-'}} / 취소 시각: {{_local?.cancelSuccess?.cancelled_at ?? '-'}}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.cancelError}}",
+                "props": {
+                  "className": "mb-6 p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 shadow-sm"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "flex items-start gap-3"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "warning",
+                          "className": "text-red-600 dark:text-red-300 text-lg mt-0.5"
+                        }
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm font-semibold text-red-900 dark:text-red-100"
+                            },
+                            "text": "취소 실패"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm text-red-700 dark:text-red-300 mt-1"
+                            },
+                            "text": "{{_local?.cancelError}}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Form",
+                "props": {
+                  "id": "reservationLookupForm",
+                  "className": "relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 md:p-7 space-y-5"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "flex items-start gap-4"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                          "className": "hidden md:flex w-12 h-12 rounded-xl bg-gray-100 dark:bg-gray-700 items-center justify-center"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Icon",
+                            "props": {
+                              "name": "search",
+                              "className": "text-gray-600 dark:text-gray-300 text-lg"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                          "className": "flex-1"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-base font-semibold text-gray-900 dark:text-white"
+                            },
+                            "text": "연락처로 예약 찾기"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "P",
+                            "props": {
+                              "className": "text-sm text-gray-500 dark:text-gray-400 mt-1"
+                            },
+                            "text": "숫자만 입력해 주세요. 예약 시 입력한 10~11자리 연락처를 기준으로 조회합니다."
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Label",
+                        "props": {
+                          "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        },
+                        "text": "전화번호"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Input",
+                        "props": {
+                          "type": "tel",
+                          "inputMode": "numeric",
+                          "pattern": "[0-9]{10,11}",
+                          "maxLength": 11,
+                          "value": "{{_local?.lookupForm?.customer_phone ?? ''}}",
+                          "name": "customer_phone",
+                          "placeholder": "01012345678 또는 010-1234-5678",
+                          "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                          "disabled": "{{_local?.isLoading || _local?.isCancelling}}"
+                        },
+                        "actions": [
+                          {
+                            "type": "change",
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "lookupForm": {
+                                "customer_phone": "{{$event.target.value.replace(/[^0-9]/g, '').slice(0, 11)}}"
+                              },
+                              "errors": null
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-xs text-gray-500 dark:text-gray-400 mt-2"
+                        },
+                        "text": "예시: 01012345678"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "if": "{{_local?.errors?.customer_phone}}",
+                        "props": {
+                          "className": "block text-red-500 text-xs mt-2"
+                        },
+                        "text": "{{_local?.errors?.customer_phone?.[0] ?? ''}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Button",
+                    "props": {
+                      "type": "submit",
+                      "className": "w-full py-3.5 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold shadow-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                      "disabled": "{{_local?.isLoading || _local?.isCancelling}}"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                          "className": "flex items-center justify-center gap-2"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Div",
+                            "if": "{{_local?.isLoading}}",
+                            "props": {
+                              "className": "w-4 h-4 border-2 border-white/40 dark:border-gray-400 border-t-white dark:border-t-gray-900 rounded-full animate-spin"
+                            }
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Span",
+                            "text": "{{_local?.isLoading ? '조회 중...' : '예약 조회하기'}}"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "submit",
+                    "handler": "sequence",
+                    "actions": [
+                      {
+                        "handler": "setState",
+                        "params": {
+                          "target": "local",
+                          "isLoading": true,
+                          "lookupError": null,
+                          "lookupMessage": null,
+                          "cancelError": null,
+                          "cancelSuccess": null,
+                          "errors": null,
+                          "lookupResults": []
+                        }
+                      },
+                      {
+                        "handler": "apiCall",
+                        "target": "/modules/glitter-reservation/reservation/bookings/lookup?customer_phone={{_local?.lookupForm?.customer_phone ?? ''}}",
+                        "params": {
+                          "method": "GET"
+                        },
+                        "onSuccess": [
+                          {
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "isLoading": false,
+                              "lookupResults": "{{response.data ?? []}}",
+                              "lookupMessage": "{{(response.data ?? []).length === 0 ? '조회된 예약이 없습니다.' : null}}"
+                            }
+                          }
+                        ],
+                        "onError": [
+                          {
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "isLoading": false,
+                              "errors": "{{error.response?.errors ?? error.errors}}",
+                              "lookupError": "{{error.response?.message ?? error.message ?? '예약 조회에 실패했습니다.'}}"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.isLoading}}",
+                "props": {
+                  "className": "mt-8 space-y-4"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "iteration": {
+                      "source": "{{[1,2,3]}}",
+                      "item_var": "skeleton",
+                      "index_var": "index"
+                    },
+                    "props": {
+                      "className": "bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md p-5 animate-pulse"
+                    },
+                    "children": [
+                      { "type": "basic", "name": "Div", "props": { "className": "h-5 w-40 bg-gray-200 dark:bg-gray-700 rounded mb-4" } },
+                      { "type": "basic", "name": "Div", "props": { "className": "h-4 w-56 bg-gray-200 dark:bg-gray-700 rounded mb-3" } },
+                      { "type": "basic", "name": "Div", "props": { "className": "h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded mb-4" } },
+                      { "type": "basic", "name": "Div", "props": { "className": "h-10 w-full bg-gray-200 dark:bg-gray-700 rounded-lg" } }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{!_local?.isLoading && (_local?.lookupResults?.length ?? 0) === 0 && _local?.lookupMessage === '조회된 예약이 없습니다.'}}",
+                "props": {
+                  "className": "mt-8 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-700 shadow-sm p-8 text-center"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "w-14 h-14 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "search",
+                          "className": "text-gray-500 dark:text-gray-300 text-xl"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-base font-semibold text-gray-900 dark:text-white"
+                    },
+                    "text": "조회된 예약이 없습니다"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-gray-500 dark:text-gray-400 mt-2"
+                    },
+                    "text": "입력한 연락처로 확인되는 예약이 없습니다. 연락처를 다시 확인해 주세요."
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{(_local?.lookupResults?.length ?? 0) > 0}}",
+                "props": {
+                  "className": "mt-8 space-y-4"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "flex items-center justify-between gap-3"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "H2",
+                        "props": {
+                          "className": "text-xl font-semibold text-gray-900 dark:text-white"
+                        },
+                        "text": "조회 결과"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "props": {
+                          "className": "text-sm text-gray-500 dark:text-gray-400"
+                        },
+                        "text": "총 {{_local?.lookupResults?.length ?? 0}}건"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "iteration": {
+                      "source": "{{_local?.lookupResults ?? []}}",
+                      "item_var": "booking",
+                      "index_var": "index"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                          "className": "bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow p-5"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": {
+                              "className": "flex items-start justify-between gap-4 mb-4"
+                            },
+                            "children": [
+                              {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                  "className": "min-w-0"
+                                },
+                                "children": [
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-lg font-semibold text-gray-900 dark:text-white truncate"
+                                    },
+                                    "text": "{{booking?.service?.name ?? '예약 서비스'}}"
+                                  },
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-xs text-gray-500 dark:text-gray-400 mt-1"
+                                    },
+                                    "text": "예약 번호 {{booking?.id ?? '-'}}"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "basic",
+                                "name": "Span",
+                                "props": {
+                                  "className": "shrink-0 inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold {{booking?.status === 'pending' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : booking?.status === 'confirmed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : booking?.status === 'cancelled' ? 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200' : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200'}}"
+                                },
+                                "text": "{{booking?.status ?? '-'}}"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": {
+                              "className": "grid grid-cols-1 md:grid-cols-2 gap-4"
+                            },
+                            "children": [
+                              {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                  "className": "rounded-lg bg-gray-50 dark:bg-gray-900/40 p-4"
+                                },
+                                "children": [
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-xs text-gray-500 dark:text-gray-400 mb-1"
+                                    },
+                                    "text": "예약 일자"
+                                  },
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-sm font-medium text-gray-900 dark:text-white"
+                                    },
+                                    "text": "{{booking?.booking_date ?? '-'}}"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                  "className": "rounded-lg bg-gray-50 dark:bg-gray-900/40 p-4"
+                                },
+                                "children": [
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-xs text-gray-500 dark:text-gray-400 mb-1"
+                                    },
+                                    "text": "예약 시간"
+                                  },
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-sm font-medium text-gray-900 dark:text-white"
+                                    },
+                                    "text": "{{booking?.booking_time ?? '-'}}"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "basic",
+                                "name": "Div",
+                                "props": {
+                                  "className": "rounded-lg bg-gray-50 dark:bg-gray-900/40 p-4 md:col-span-2"
+                                },
+                                "children": [
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-xs text-gray-500 dark:text-gray-400 mb-1"
+                                    },
+                                    "text": "신청 시각"
+                                  },
+                                  {
+                                    "type": "basic",
+                                    "name": "P",
+                                    "props": {
+                                      "className": "text-sm text-gray-900 dark:text-white"
+                                    },
+                                    "text": "{{booking?.created_at ?? '-'}}"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": {
+                              "className": "mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-col md:flex-row md:items-center md:justify-between gap-3"
+                            },
+                            "children": [
+                              {
+                                "type": "basic",
+                                "name": "P",
+                                "if": "{{!['pending', 'confirmed'].includes(booking?.status ?? '')}}",
+                                "props": {
+                                  "className": "text-sm text-gray-500 dark:text-gray-400"
+                                },
+                                "text": "{{booking?.status === 'cancelled' ? '이미 취소된 예약입니다.' : '현재 상태에서는 고객이 직접 취소할 수 없습니다.'}}"
+                              },
+                              {
+                                "type": "basic",
+                                "name": "Button",
+                                "if": "{{['pending', 'confirmed'].includes(booking?.status ?? '')}}",
+                                "props": {
+                                  "type": "button",
+                                  "className": "w-full md:w-auto px-4 py-2.5 rounded-lg bg-red-600 text-white text-sm font-medium shadow-sm hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                                  "disabled": "{{_local?.isCancelling || _local?.isLoading}}"
+                                },
+                                "actions": [
+                                  {
+                                    "type": "click",
+                                    "handler": "sequence",
+                                    "actions": [
+                                      {
+                                        "handler": "setState",
+                                        "params": {
+                                          "target": "local",
+                                          "pendingCancelBooking": {
+                                            "id": "{{booking?.id ?? null}}",
+                                            "service_name": "{{booking?.service?.name ?? ''}}",
+                                            "booking_date": "{{booking?.booking_date ?? ''}}",
+                                            "booking_time": "{{booking?.booking_time ?? ''}}",
+                                            "status": "{{booking?.status ?? ''}}"
+                                          },
+                                          "cancelError": null,
+                                          "cancelSuccess": null
+                                        }
+                                      },
+                                      {
+                                        "handler": "openModal",
+                                        "target": "cancel_confirm_modal"
+                                      }
+                                    ]
+                                  }
+                                ],
+                                "children": [
+                                  {
+                                    "type": "basic",
+                                    "name": "Div",
+                                    "props": {
+                                      "className": "flex items-center justify-center gap-2"
+                                    },
+                                    "children": [
+                                      {
+                                        "type": "basic",
+                                        "name": "Div",
+                                        "if": "{{_local?.isCancelling && _local?.isCancellingId === booking?.id}}",
+                                        "props": {
+                                          "className": "w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                                        }
+                                      },
+                                      {
+                                        "type": "basic",
+                                        "name": "Span",
+                                        "text": "{{_local?.isCancelling && _local?.isCancellingId === booking?.id ? '취소 중...' : '예약 취소'}}"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "modals": [
+    {
+      "id": "cancel_confirm_modal",
+      "type": "composite",
+      "name": "Modal",
+      "props": {
+        "title": "예약 취소 확인",
+        "size": "default"
+      },
+      "children": [
+        {
+          "type": "basic",
+          "name": "Div",
+          "props": {
+            "className": "space-y-5"
+          },
+          "children": [
+            {
+              "type": "basic",
+              "name": "Div",
+              "props": {
+                "className": "rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4"
+              },
+              "children": [
+                {
+                  "type": "basic",
+                  "name": "P",
+                  "props": {
+                    "className": "text-sm font-semibold text-red-900 dark:text-red-100"
+                  },
+                  "text": "정말 취소하시겠습니까?"
+                },
+                {
+                  "type": "basic",
+                  "name": "P",
+                  "props": {
+                    "className": "text-sm text-red-700 dark:text-red-300 mt-2"
+                  },
+                  "text": "취소 후에는 같은 시간대 예약이 다시 열릴 수 있습니다."
+                }
+              ]
+            },
+            {
+              "type": "basic",
+              "name": "Div",
+              "props": {
+                "className": "rounded-lg bg-gray-50 dark:bg-gray-900/40 p-4 space-y-2"
+              },
+              "children": [
+                {
+                  "type": "basic",
+                  "name": "P",
+                  "props": {
+                    "className": "text-sm font-medium text-gray-900 dark:text-white"
+                  },
+                  "text": "{{_local?.pendingCancelBooking?.service_name ?? '예약 서비스'}}"
+                },
+                {
+                  "type": "basic",
+                  "name": "P",
+                  "props": {
+                    "className": "text-sm text-gray-600 dark:text-gray-400"
+                  },
+                  "text": "{{_local?.pendingCancelBooking?.booking_date ?? '-'}} / {{_local?.pendingCancelBooking?.booking_time ?? '-'}}"
+                }
+              ]
+            },
+            {
+              "type": "basic",
+              "name": "Div",
+              "props": {
+                "className": "flex flex-col-reverse md:flex-row justify-end gap-3"
+              },
+              "children": [
+                {
+                  "type": "basic",
+                  "name": "Button",
+                  "props": {
+                    "type": "button",
+                    "className": "w-full md:w-auto px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700",
+                    "disabled": "{{_local?.isCancelling}}"
+                  },
+                  "actions": [
+                    {
+                      "type": "click",
+                      "handler": "sequence",
+                      "actions": [
+                        {
+                          "handler": "setState",
+                          "params": {
+                            "target": "local",
+                            "pendingCancelBooking": null
+                          }
+                        },
+                        {
+                          "handler": "closeModal"
+                        }
+                      ]
+                    }
+                  ],
+                  "text": "닫기"
+                },
+                {
+                  "type": "basic",
+                  "name": "Button",
+                  "props": {
+                    "type": "button",
+                    "className": "w-full md:w-auto px-4 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed",
+                    "disabled": "{{_local?.isCancelling || !_local?.pendingCancelBooking?.id}}"
+                  },
+                  "actions": [
+                    {
+                      "type": "click",
+                      "handler": "sequence",
+                      "actions": [
+                        {
+                          "handler": "setState",
+                          "params": {
+                            "target": "local",
+                            "isCancelling": true,
+                            "isCancellingId": "{{_local?.pendingCancelBooking?.id}}",
+                            "cancelError": null,
+                            "cancelSuccess": null
+                          }
+                        },
+                        {
+                          "handler": "apiCall",
+                          "target": "/modules/glitter-reservation/reservation/bookings/{{_local?.pendingCancelBooking?.id}}/cancel",
+                          "params": {
+                            "method": "POST",
+                            "body": {
+                              "customer_phone": "{{_local?.lookupForm?.customer_phone ?? ''}}"
+                            }
+                          },
+                          "onSuccess": [
+                            {
+                              "handler": "setState",
+                              "params": {
+                                "target": "local",
+                                "pendingCancelBooking": null,
+                                "cancelSuccess": {
+                                  "id": "{{response.data?.id ?? null}}",
+                                  "status": "{{response.data?.status ?? null}}",
+                                  "cancelled_at": "{{response.data?.cancelled_at ?? null}}"
+                                }
+                              }
+                            },
+                            {
+                              "handler": "closeModal"
+                            },
+                            {
+                              "handler": "toast",
+                              "params": {
+                                "type": "success",
+                                "message": "예약이 취소되었습니다"
+                              }
+                            },
+                            {
+                              "handler": "apiCall",
+                              "target": "/modules/glitter-reservation/reservation/bookings/lookup?customer_phone={{_local?.lookupForm?.customer_phone ?? ''}}",
+                              "params": {
+                                "method": "GET"
+                              },
+                              "onSuccess": [
+                                {
+                                  "handler": "setState",
+                                  "params": {
+                                    "target": "local",
+                                    "isCancelling": false,
+                                    "isCancellingId": null,
+                                    "lookupResults": "{{response.data ?? []}}",
+                                    "lookupMessage": null
+                                  }
+                                }
+                              ],
+                              "onError": [
+                                {
+                                  "handler": "setState",
+                                  "params": {
+                                    "target": "local",
+                                    "isCancelling": false,
+                                    "isCancellingId": null,
+                                    "cancelError": "{{error.response?.message ?? error.message ?? '취소 후 예약 목록을 다시 불러오지 못했습니다.'}}"
+                                  }
+                                }
+                              ]
+                            }
+                          ],
+                          "onError": [
+                            {
+                              "handler": "setState",
+                              "params": {
+                                "target": "local",
+                                "isCancelling": false,
+                                "isCancellingId": null,
+                                "cancelError": "{{error.response?.message ?? error.message ?? '예약 취소에 실패했습니다.'}}"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ],
+                  "children": [
+                    {
+                      "type": "basic",
+                      "name": "Div",
+                      "props": {
+                        "className": "flex items-center justify-center gap-2"
+                      },
+                      "children": [
+                        {
+                          "type": "basic",
+                          "name": "Div",
+                          "if": "{{_local?.isCancelling}}",
+                          "props": {
+                            "className": "w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                          }
+                        },
+                        {
+                          "type": "basic",
+                          "name": "Span",
+                          "text": "{{_local?.isCancelling ? '취소 중...' : '정말 취소하기'}}"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

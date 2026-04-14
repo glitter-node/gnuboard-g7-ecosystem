@@ -1,0 +1,1192 @@
+{
+  "version": "1.0.0",
+  "layout_name": "reservation_apply",
+  "extends": "_user_base",
+  "permissions": [],
+  "meta": {
+    "title": "예약 신청",
+    "description": "이메일 인증 후 예약을 신청하는 화면"
+  },
+  "init_actions": [
+    {
+      "handler": "setState",
+      "params": {
+        "target": "local",
+        "verificationForm": {
+          "email": ""
+        },
+        "verificationRequested": false,
+        "verificationError": null,
+        "verificationSuccess": null,
+        "verificationStatus": {
+          "verified": false,
+          "email": null,
+          "expires_at": null
+        },
+        "services": [],
+        "servicesError": null,
+        "isLoadingServices": true,
+        "bookingForm": {
+          "service_id": "",
+          "booking_date": "",
+          "booking_time": "",
+          "customer_name": "",
+          "customer_phone": "",
+          "memo": ""
+        },
+        "slots": [],
+        "hasSearchedSlots": false,
+        "slotError": null,
+        "slotMessage": null,
+        "isLoadingSlots": false,
+        "bookingErrors": null,
+        "bookingError": null,
+        "bookingSuccess": null,
+        "isSendingVerification": false,
+        "isSubmittingBooking": false
+      }
+    },
+    {
+      "handler": "apiCall",
+      "target": "/sanctum/csrf-cookie",
+      "params": {
+        "method": "GET"
+      }
+    },
+    {
+      "handler": "apiCall",
+      "target": "/modules/glitter-reservation/reservation/verification-status",
+      "params": {
+        "method": "GET"
+      },
+      "onSuccess": [
+        {
+          "handler": "setState",
+          "params": {
+            "target": "local",
+            "verificationStatus": "{{response.data ?? { verified: false, email: null, expires_at: null }}}",
+            "verificationForm": {
+              "email": "{{response.data?.email ?? ''}}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "handler": "apiCall",
+      "target": "/modules/glitter-reservation/reservation/services",
+      "params": {
+        "method": "GET"
+      },
+      "onSuccess": [
+        {
+          "handler": "setState",
+          "params": {
+            "target": "local",
+            "services": "{{response.data ?? []}}",
+            "isLoadingServices": false
+          }
+        }
+      ],
+      "onError": [
+        {
+          "handler": "setState",
+          "params": {
+            "target": "local",
+            "servicesError": "{{error.response?.message ?? error.message ?? '예약 서비스를 불러오지 못했습니다.'}}",
+            "isLoadingServices": false
+          }
+        }
+      ]
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "layout",
+        "name": "Container",
+        "props": {
+          "className": "py-10"
+        },
+        "responsive": {
+          "portable": {
+            "props": {
+              "className": "py-6"
+            }
+          }
+        },
+        "children": [
+          {
+            "type": "basic",
+            "name": "Div",
+            "props": {
+              "className": "max-w-3xl mx-auto px-4 space-y-6"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "text-center space-y-3"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "w-16 h-16 mx-auto rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shadow-sm"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Icon",
+                        "props": {
+                          "name": "mail",
+                          "className": "text-blue-600 dark:text-blue-300 text-2xl"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "H1",
+                    "props": {
+                      "className": "text-3xl font-bold text-gray-900 dark:text-white"
+                    },
+                    "text": "이메일 인증 후 예약 신청"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm md:text-base text-gray-600 dark:text-gray-400 leading-6"
+                    },
+                    "text": "예약 신청 전 이메일 인증을 완료하면, 인증된 이메일 기준으로 30분 동안 예약을 진행할 수 있습니다."
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{query?.verification === 'expired'}}",
+                "props": {
+                  "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-red-700 dark:text-red-300"
+                    },
+                    "text": "인증 링크가 만료되었습니다. 이메일 인증을 다시 요청해 주세요."
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{query?.verification === 'used'}}",
+                "props": {
+                  "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-red-700 dark:text-red-300"
+                    },
+                    "text": "이미 사용된 인증 링크입니다. 다시 인증 메일을 요청해 주세요."
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{query?.verification === 'invalid'}}",
+                "props": {
+                  "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-red-700 dark:text-red-300"
+                    },
+                    "text": "유효하지 않은 인증 링크입니다. 이메일 인증을 다시 요청해 주세요."
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.verificationSuccess}}",
+                "props": {
+                  "className": "p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-blue-700 dark:text-blue-300"
+                    },
+                    "text": "{{_local?.verificationSuccess}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.verificationError}}",
+                "props": {
+                  "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-red-700 dark:text-red-300"
+                    },
+                    "text": "{{_local?.verificationError}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.verificationStatus?.verified !== true}}",
+                "props": {
+                  "className": "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 md:p-7 space-y-5"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "props": {
+                      "className": "text-xl font-semibold text-gray-900 dark:text-white"
+                    },
+                    "text": "1. 이메일 인증"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-gray-600 dark:text-gray-400"
+                    },
+                    "text": "이메일 인증이 완료되어야 예약 신청 폼이 열립니다. 인증 링크는 15분 동안 유효합니다."
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{!_local?.verificationRequested}}",
+                    "props": {
+                      "className": "space-y-4"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Label",
+                            "props": {
+                              "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            },
+                            "text": "이메일 주소"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Input",
+                            "props": {
+                              "type": "email",
+                              "name": "email",
+                              "value": "{{_local?.verificationForm?.email ?? ''}}",
+                              "placeholder": "name@example.com",
+                              "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500",
+                              "disabled": "{{_local?.isSendingVerification}}"
+                            },
+                            "actions": [
+                              {
+                                "type": "change",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "verificationForm": {
+                                    "email": "{{$event.target.value.trim()}}"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Button",
+                        "props": {
+                          "type": "button",
+                          "className": "w-full py-3.5 rounded-lg bg-blue-600 text-white font-semibold shadow-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                          "disabled": "{{_local?.isSendingVerification || !(_local?.verificationForm?.email ?? '')}}"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Div",
+                            "props": {
+                              "className": "flex items-center justify-center gap-2"
+                            },
+                            "children": [
+                              {
+                                "type": "basic",
+                                "name": "Div",
+                                "if": "{{_local?.isSendingVerification}}",
+                                "props": {
+                                  "className": "w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"
+                                }
+                              },
+                              {
+                                "type": "basic",
+                                "name": "Span",
+                                "text": "{{_local?.isSendingVerification ? '발송 중...' : '인증 링크 보내기'}}"
+                              }
+                            ]
+                          }
+                        ],
+                        "actions": [
+                          {
+                            "type": "click",
+                            "handler": "sequence",
+                            "actions": [
+                              {
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "isSendingVerification": true,
+                                  "verificationError": null,
+                                  "verificationSuccess": null
+                                }
+                              },
+                              {
+                                "handler": "apiCall",
+                                "target": "/sanctum/csrf-cookie",
+                                "params": {
+                                  "method": "GET"
+                                }
+                              },
+                              {
+                                "handler": "apiCall",
+                                "target": "/modules/glitter-reservation/reservation/email-verifications",
+                                "params": {
+                                  "method": "POST",
+                                  "body": {
+                                    "email": "{{_local?.verificationForm?.email ?? ''}}"
+                                  }
+                                },
+                                "onSuccess": [
+                                  {
+                                    "handler": "setState",
+                                    "params": {
+                                      "target": "local",
+                                      "isSendingVerification": false,
+                                      "verificationRequested": true,
+                                      "verificationSuccess": "{{response.data?.message ?? '인증 링크를 이메일로 전송했습니다. 메일함을 확인해 주세요.'}}"
+                                    }
+                                  }
+                                ],
+                                "onError": [
+                                  {
+                                    "handler": "setState",
+                                    "params": {
+                                      "target": "local",
+                                      "isSendingVerification": false,
+                                      "verificationError": "{{error.response?.message ?? error.message ?? '인증 링크를 보내지 못했습니다.'}}"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{_local?.verificationRequested}}",
+                    "props": {
+                      "className": "rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 p-5 space-y-4"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm font-medium text-blue-900 dark:text-blue-100"
+                        },
+                        "text": "이메일로 전송된 링크를 클릭해 인증을 완료하세요."
+                      },
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm text-blue-700 dark:text-blue-300"
+                        },
+                        "text": "발송 이메일: {{_local?.verificationForm?.email ?? '-'}}"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "props": {
+                          "className": "flex flex-col md:flex-row gap-3"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Button",
+                            "props": {
+                              "type": "button",
+                              "className": "w-full py-3 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors disabled:opacity-50",
+                              "disabled": "{{_local?.isSendingVerification}}"
+                            },
+                            "text": "{{_local?.isSendingVerification ? '재발송 중...' : '인증 링크 재발송'}}",
+                            "actions": [
+                              {
+                                "type": "click",
+                                "handler": "sequence",
+                                "actions": [
+                                  {
+                                    "handler": "setState",
+                                    "params": {
+                                      "target": "local",
+                                      "isSendingVerification": true,
+                                      "verificationError": null,
+                                      "verificationSuccess": null
+                                    }
+                                  },
+                                  {
+                                    "handler": "apiCall",
+                                    "target": "/sanctum/csrf-cookie",
+                                    "params": {
+                                      "method": "GET"
+                                    }
+                                  },
+                                  {
+                                    "handler": "apiCall",
+                                    "target": "/modules/glitter-reservation/reservation/email-verifications",
+                                    "params": {
+                                      "method": "POST",
+                                      "body": {
+                                        "email": "{{_local?.verificationForm?.email ?? ''}}"
+                                      }
+                                    },
+                                    "onSuccess": [
+                                      {
+                                        "handler": "setState",
+                                        "params": {
+                                          "target": "local",
+                                          "isSendingVerification": false,
+                                          "verificationSuccess": "{{response.data?.message ?? '인증 링크를 이메일로 전송했습니다. 메일함을 확인해 주세요.'}}"
+                                        }
+                                      }
+                                    ],
+                                    "onError": [
+                                      {
+                                        "handler": "setState",
+                                        "params": {
+                                          "target": "local",
+                                          "isSendingVerification": false,
+                                          "verificationError": "{{error.response?.message ?? error.message ?? '인증 링크를 보내지 못했습니다.'}}"
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Button",
+                            "props": {
+                              "type": "button",
+                              "className": "w-full py-3 rounded-lg bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-medium border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                            },
+                            "text": "이메일 변경",
+                            "actions": [
+                              {
+                                "type": "click",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "verificationRequested": false,
+                                  "verificationSuccess": null,
+                                  "verificationError": null
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.verificationStatus?.verified === true}}",
+                "props": {
+                  "className": "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-5"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm font-semibold text-green-900 dark:text-green-100"
+                    },
+                    "text": "이메일 인증이 완료되었습니다."
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-green-700 dark:text-green-300 mt-1"
+                    },
+                    "text": "인증 이메일: {{_local?.verificationStatus?.email ?? '-'}} / 예약 가능 만료 시각: {{_local?.verificationStatus?.expires_at ?? '-'}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local?.verificationStatus?.verified === true}}",
+                "props": {
+                  "className": "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-6 md:p-7 space-y-5"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "props": {
+                      "className": "text-xl font-semibold text-gray-900 dark:text-white"
+                    },
+                    "text": "2. 예약 정보 입력"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-sm text-gray-600 dark:text-gray-400"
+                    },
+                    "text": "인증된 이메일로만 예약이 생성됩니다. 예약 가능한 시간을 먼저 조회해 주세요."
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{_local?.servicesError}}",
+                    "props": {
+                      "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm text-red-700 dark:text-red-300"
+                        },
+                        "text": "{{_local?.servicesError}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{_local?.bookingSuccess}}",
+                    "props": {
+                      "className": "p-4 rounded-lg border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm text-green-700 dark:text-green-300"
+                        },
+                        "text": "{{_local?.bookingSuccess}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{_local?.bookingError}}",
+                    "props": {
+                      "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm text-red-700 dark:text-red-300"
+                        },
+                        "text": "{{_local?.bookingError}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "grid grid-cols-1 md:grid-cols-2 gap-4"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Label",
+                            "props": {
+                              "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            },
+                            "text": "예약 서비스"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Select",
+                            "props": {
+                              "value": "{{_local?.bookingForm?.service_id ?? ''}}",
+                              "options": "{{(_local?.services ?? []).map(service => ({ value: String(service.id), label: service.name }))}}",
+                              "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                              "disabled": "{{_local?.isLoadingServices || _local?.isSubmittingBooking}}"
+                            },
+                            "actions": [
+                              {
+                                "type": "change",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "bookingForm": {
+                                    "service_id": "{{$event.target.value}}",
+                                    "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                    "booking_time": "",
+                                    "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                    "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                  "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                                },
+                                  "hasSearchedSlots": false,
+                                  "slots": [],
+                                  "slotError": null,
+                                  "slotMessage": null
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Span",
+                            "if": "{{_local?.bookingErrors?.service_id}}",
+                            "props": {
+                              "className": "block text-red-500 text-xs mt-2"
+                            },
+                            "text": "{{_local?.bookingErrors?.service_id?.[0] ?? ''}}"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Label",
+                            "props": {
+                              "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            },
+                            "text": "예약 날짜"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Input",
+                            "props": {
+                              "type": "date",
+                              "value": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                              "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                              "disabled": "{{_local?.isSubmittingBooking}}"
+                            },
+                            "actions": [
+                              {
+                                "type": "change",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "bookingForm": {
+                                    "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                    "booking_date": "{{$event.target.value}}",
+                                    "booking_time": "",
+                                    "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                    "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                  "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                                },
+                                  "hasSearchedSlots": false,
+                                  "slots": [],
+                                  "slotError": null,
+                                  "slotMessage": null
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Span",
+                            "if": "{{_local?.bookingErrors?.booking_date}}",
+                            "props": {
+                              "className": "block text-red-500 text-xs mt-2"
+                            },
+                            "text": "{{_local?.bookingErrors?.booking_date?.[0] ?? ''}}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Button",
+                    "props": {
+                      "type": "button",
+                      "className": "w-full py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-semibold shadow-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                      "disabled": "{{_local?.isLoadingSlots || !(_local?.bookingForm?.service_id ?? '') || !(_local?.bookingForm?.booking_date ?? '')}}"
+                    },
+                    "text": "{{_local?.isLoadingSlots ? '슬롯 조회 중...' : '예약 가능 시간 조회'}}",
+                    "actions": [
+                      {
+                        "type": "click",
+                        "handler": "sequence",
+                        "actions": [
+                          {
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "isLoadingSlots": true,
+                              "hasSearchedSlots": false,
+                              "slotError": null,
+                              "slotMessage": null,
+                              "slots": [],
+                              "bookingForm": {
+                                "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                "booking_time": "",
+                                "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                              }
+                            }
+                          },
+                          {
+                            "handler": "apiCall",
+                            "target": "/modules/glitter-reservation/reservation/slots?service_id={{_local?.bookingForm?.service_id ?? ''}}&booking_date={{_local?.bookingForm?.booking_date ?? ''}}",
+                            "params": {
+                              "method": "GET"
+                            },
+                            "onSuccess": [
+                              {
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "isLoadingSlots": false,
+                                  "hasSearchedSlots": true,
+                                  "slots": "{{response.data?.slots ?? []}}",
+                                  "slotMessage": "{{(response.data?.slots ?? []).length === 0 ? '선택한 날짜에 예약 가능한 시간이 없습니다.' : null}}"
+                                }
+                              }
+                            ],
+                            "onError": [
+                              {
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "isLoadingSlots": false,
+                                  "hasSearchedSlots": true,
+                                  "slotError": "{{error.response?.message ?? error.message ?? '예약 가능 시간을 불러오지 못했습니다.'}}"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{_local?.slotError}}",
+                    "props": {
+                      "className": "p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm text-red-700 dark:text-red-300"
+                        },
+                        "text": "{{_local?.slotError}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{_local?.hasSearchedSlots === true && _local?.slotMessage}}",
+                    "props": {
+                      "className": "p-4 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm text-blue-700 dark:text-blue-300"
+                        },
+                        "text": "{{_local?.slotMessage}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "if": "{{(_local?.slots ?? []).length > 0}}",
+                    "props": {
+                      "className": "space-y-3"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "P",
+                        "props": {
+                          "className": "text-sm font-medium text-gray-700 dark:text-gray-300"
+                        },
+                        "text": "예약 시간 선택"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "iteration": {
+                          "source": "{{_local?.slots ?? []}}",
+                          "item_var": "slot",
+                          "index_var": "index"
+                        },
+                        "props": {
+                          "className": "mb-2"
+                        },
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Button",
+                            "props": {
+                              "type": "button",
+                              "className": "w-full px-4 py-3 rounded-lg border transition-colors {{_local?.bookingForm?.booking_time === slot ? 'border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-900/20 dark:text-blue-200' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-300 dark:hover:border-blue-500'}}"
+                            },
+                            "text": "{{slot}}",
+                            "actions": [
+                              {
+                                "type": "click",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "bookingForm": {
+                                    "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                    "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                    "booking_time": "{{slot}}",
+                                    "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                    "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                    "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "if": "{{_local?.bookingErrors?.booking_time}}",
+                        "props": {
+                          "className": "block text-red-500 text-xs mt-2"
+                        },
+                        "text": "{{_local?.bookingErrors?.booking_time?.[0] ?? ''}}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "grid grid-cols-1 md:grid-cols-2 gap-4"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Label",
+                            "props": {
+                              "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            },
+                            "text": "예약자 이름"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Input",
+                            "props": {
+                              "type": "text",
+                              "value": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                              "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                              "disabled": "{{_local?.isSubmittingBooking}}"
+                            },
+                            "actions": [
+                              {
+                                "type": "change",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "bookingForm": {
+                                    "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                    "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                    "booking_time": "{{_local?.bookingForm?.booking_time ?? ''}}",
+                                    "customer_name": "{{$event.target.value}}",
+                                    "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                    "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Span",
+                            "if": "{{_local?.bookingErrors?.customer_name}}",
+                            "props": {
+                              "className": "block text-red-500 text-xs mt-2"
+                            },
+                            "text": "{{_local?.bookingErrors?.customer_name?.[0] ?? ''}}"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Label",
+                            "props": {
+                              "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            },
+                            "text": "연락처"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Input",
+                            "props": {
+                              "type": "tel",
+                              "inputMode": "numeric",
+                              "pattern": "[0-9]{10,11}",
+                              "maxLength": 11,
+                              "value": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                              "placeholder": "01012345678",
+                              "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                              "disabled": "{{_local?.isSubmittingBooking}}"
+                            },
+                            "actions": [
+                              {
+                                "type": "change",
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "bookingForm": {
+                                    "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                    "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                    "booking_time": "{{_local?.bookingForm?.booking_time ?? ''}}",
+                                    "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                    "customer_phone": "{{$event.target.value.replace(/[^0-9]/g, '').slice(0, 11)}}",
+                                    "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Span",
+                            "if": "{{_local?.bookingErrors?.customer_phone}}",
+                            "props": {
+                              "className": "block text-red-500 text-xs mt-2"
+                            },
+                            "text": "{{_local?.bookingErrors?.customer_phone?.[0] ?? ''}}"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "props": {
+                      "className": "grid grid-cols-1 md:grid-cols-2 gap-4"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Div",
+                        "children": [
+                          {
+                            "type": "basic",
+                            "name": "Label",
+                            "props": {
+                              "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                            },
+                            "text": "인증된 이메일"
+                          },
+                          {
+                            "type": "basic",
+                            "name": "Input",
+                            "props": {
+                              "type": "email",
+                              "value": "{{_local?.verificationStatus?.email ?? ''}}",
+                              "className": "w-full px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400",
+                              "disabled": true
+                            }
+                          }
+                        ]
+                      },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Label",
+                        "props": {
+                          "className": "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+                        },
+                        "text": "요청 메모"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Textarea",
+                        "props": {
+                          "rows": 4,
+                          "value": "{{_local?.bookingForm?.memo ?? ''}}",
+                          "placeholder": "상담 전 전달할 내용이 있다면 입력해 주세요.",
+                          "className": "w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
+                          "disabled": "{{_local?.isSubmittingBooking}}"
+                        },
+                        "actions": [
+                          {
+                            "type": "change",
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "bookingForm": {
+                                "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                "booking_time": "{{_local?.bookingForm?.booking_time ?? ''}}",
+                                "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                "memo": "{{$event.target.value}}"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Button",
+                    "props": {
+                      "type": "button",
+                      "className": "w-full py-3.5 rounded-lg bg-green-600 text-white font-semibold shadow-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+                      "disabled": "{{_local?.isSubmittingBooking}}"
+                    },
+                    "text": "{{_local?.isSubmittingBooking ? '예약 접수 중...' : '예약 신청하기'}}",
+                    "actions": [
+                      {
+                        "type": "click",
+                        "handler": "sequence",
+                        "actions": [
+                          {
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "isSubmittingBooking": true,
+                              "bookingErrors": null,
+                              "bookingError": null,
+                              "bookingSuccess": null
+                            }
+                          },
+                          {
+                            "handler": "apiCall",
+                            "target": "/modules/glitter-reservation/reservation/bookings",
+                            "params": {
+                              "method": "POST",
+                              "body": {
+                                "service_id": "{{_local?.bookingForm?.service_id ?? ''}}",
+                                "booking_date": "{{_local?.bookingForm?.booking_date ?? ''}}",
+                                "booking_time": "{{_local?.bookingForm?.booking_time ?? ''}}",
+                                "customer_name": "{{_local?.bookingForm?.customer_name ?? ''}}",
+                                "customer_phone": "{{_local?.bookingForm?.customer_phone ?? ''}}",
+                                "customer_email": "{{_local?.verificationStatus?.email ?? ''}}",
+                                "memo": "{{_local?.bookingForm?.memo ?? ''}}"
+                              }
+                            },
+                            "onSuccess": [
+                              {
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "isSubmittingBooking": false,
+                                  "bookingSuccess": "{{'예약이 접수되었습니다. 예약 번호: ' + (response.data?.id ?? '-') + ' / 상태: ' + (response.data?.status ?? '-')}}"
+                                }
+                              }
+                            ],
+                            "onError": [
+                              {
+                                "handler": "setState",
+                                "params": {
+                                  "target": "local",
+                                  "isSubmittingBooking": false,
+                                  "bookingErrors": "{{error.response?.errors ?? error.errors}}",
+                                  "bookingError": "{{error.response?.message ?? error.message ?? '예약 신청에 실패했습니다.'}}"
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  ]
+  }
+}

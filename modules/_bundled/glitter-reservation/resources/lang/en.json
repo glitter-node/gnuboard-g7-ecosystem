@@ -1,0 +1,23 @@
+{
+    "messages.reservations.fetch_success": "Reservations fetched successfully.",
+    "messages.reservations.fetch_failed": "Failed to fetch reservations.",
+    "messages.reservations.show_success": "Reservation fetched successfully.",
+    "messages.reservations.not_found": "Reservation not found.",
+    "messages.reservations.create_success": "Reservation created successfully.",
+    "messages.reservations.create_failed": "Failed to create reservation.",
+    "messages.reservations.update_success": "Reservation updated successfully.",
+    "messages.reservations.update_failed": "Failed to update reservation.",
+    "messages.reservations.delete_success": "Reservation deleted successfully.",
+    "messages.reservations.delete_failed": "Failed to delete reservation.",
+    "messages.reservations.validation_failed": "Reservation validation failed.",
+    "validation.attributes.reservation_service_id": "reservation service",
+    "validation.attributes.name": "reservation name",
+    "validation.attributes.phone": "phone number",
+    "validation.attributes.email": "email",
+    "validation.attributes.reservation_date": "reservation date",
+    "validation.attributes.reservation_time": "reservation time",
+    "validation.attributes.guest_count": "guest count",
+    "validation.attributes.status": "reservation status",
+    "validation.attributes.request_memo": "request memo",
+    "validation.attributes.admin_memo": "admin memo"
+}

@@ -1,0 +1,16 @@
+{
+    "name": "modules/glitter-reservation",
+    "description": "Reservation module for Gnuboard7",
+    "type": "library",
+    "version": "0.1.0",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Modules\\Glitter\\Reservation\\": "src/",
+            "Modules\\Glitter\\Reservation\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "require": {
+        "php": "^8.2"
+    }
+}

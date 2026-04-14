@@ -1,0 +1,23 @@
+{
+    "messages.reservations.fetch_success": "예약 목록을 조회했습니다.",
+    "messages.reservations.fetch_failed": "예약 목록 조회에 실패했습니다.",
+    "messages.reservations.show_success": "예약 정보를 조회했습니다.",
+    "messages.reservations.not_found": "예약 정보를 찾을 수 없습니다.",
+    "messages.reservations.create_success": "예약을 생성했습니다.",
+    "messages.reservations.create_failed": "예약 생성에 실패했습니다.",
+    "messages.reservations.update_success": "예약을 수정했습니다.",
+    "messages.reservations.update_failed": "예약 수정에 실패했습니다.",
+    "messages.reservations.delete_success": "예약을 삭제했습니다.",
+    "messages.reservations.delete_failed": "예약 삭제에 실패했습니다.",
+    "messages.reservations.validation_failed": "예약 검증에 실패했습니다.",
+    "validation.attributes.reservation_service_id": "예약 서비스",
+    "validation.attributes.name": "예약자명",
+    "validation.attributes.phone": "연락처",
+    "validation.attributes.email": "이메일",
+    "validation.attributes.reservation_date": "예약일",
+    "validation.attributes.reservation_time": "예약 시간",
+    "validation.attributes.guest_count": "예약 인원",
+    "validation.attributes.status": "예약 상태",
+    "validation.attributes.request_memo": "요청 메모",
+    "validation.attributes.admin_memo": "관리자 메모"
+}
