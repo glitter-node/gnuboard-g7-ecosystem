@@ -1,7 +1,7 @@
 {
     "id": "glitter-reservation",
     "identifier": "glitter-reservation",
-    "vendor": "glitter",
+    "vendor": "Glitter.kr",
     "name": {
         "ko": "예약",
         "en": "Reservation"
